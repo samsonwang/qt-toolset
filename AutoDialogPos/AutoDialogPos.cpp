@@ -1,21 +1,22 @@
-ï»¿//==============================================================================
+//==============================================================================
 //							 AutoDialogPos.cpp
 //							   
 //begin	  : 2016/11/29
-//describe: è‡ªåŠ¨è°ƒæ•´å¯¹è¯æ¡†çš„ä½ç½®
+//describe: ×Ô¶¯µ÷Õû¶Ô»°¿òµÄÎ»ÖÃ
 //==============================================================================
 #include <cassert>
 #include <QApplication>
 #include <QDesktopWidget>
 #include "AutoDialogPos.h"
 
-#define SCREEEN_OFFSET		15		// å¯¹è¯æ¡†ä¸å±å¹•çš„æœ€å°è¾¹ç•Œä½ç½®
-#define WIDGET_TITLE_OFFSET 40		// å¯¹è¯æ¡†çš„æ ‡é¢˜æ ä¼°ç®—é«˜åº¦
+#define SCREEN_OFFSET_H		25		// ¶Ô»°¿òÓëÆÁÄ»×óÓÒ±ßµÄ×îĞ¡±ß½çÎ»ÖÃ
+#define SCREEN_OFFSET_V		50		// ¶Ô»°¿òÓëÆÁÄ»ÉÏÏÂ±ßµÄ×îĞ¡±ß½çÎ»ÖÃ
+#define WIDGET_TITLE_OFFSET 35		// ¶Ô»°¿òµÄ±êÌâÀ¸¹ÀËã¸ß¶È
 
 //==============================================================================
 //
 //							  CAutoDialogPos
-//							è‡ªåŠ¨Qtè°ƒæ•´å¯¹è¯æ¡†çš„ä½ç½®
+//							×Ô¶¯Qtµ÷Õû¶Ô»°¿òµÄÎ»ÖÃ
 //
 //==============================================================================
 
@@ -26,10 +27,10 @@ void CAutoDialogPos::AdjustPos(QWidget* pWidget, bool bResize)
 		return;
 	}
 
-	// è·å–é¼ æ ‡æ‰€åœ¨å±å¹•çš„åæ ‡
+	// »ñÈ¡Êó±êËùÔÚÆÁÄ»µÄ×ø±ê
 	QPoint objCursorPoint = pWidget->cursor().pos();
 
-	// è·å–é¼ æ ‡æ‰€åœ¨å±å¹•çš„å°ºå¯¸
+	// »ñÈ¡Êó±êËùÔÚÆÁÄ»µÄ³ß´ç
 	QDesktopWidget* pDesktop = QApplication::desktop();
 	if(NULL == pDesktop)
 	{
@@ -37,20 +38,19 @@ void CAutoDialogPos::AdjustPos(QWidget* pWidget, bool bResize)
 	}
 	QRect objScreenRect = pDesktop->screenGeometry(objCursorPoint);
 	
-	// å¦‚æœç•Œé¢ä¼šè‡ªåŠ¨å˜åŒ–ï¼Œé‚£ä¹ˆç•Œé¢åœ¨æ˜¾ç¤ºçš„æ—¶å€™å…¶å°ºå¯¸æ‰æ˜¯æœ‰æ•ˆçš„
+	// Èç¹û½çÃæ»á×Ô¶¯±ä»¯£¬ÄÇÃ´½çÃæÔÚÏÔÊ¾µÄÊ±ºòÆä³ß´ç²ÅÊÇÓĞĞ§µÄ
 	if(bResize)
 	{
 		pWidget->show();
 	}
-	// è·å–æ§ä»¶çš„å°ºå¯¸
+	// »ñÈ¡¿Ø¼şµÄ³ß´ç
 	QSize objWidgetSize = pWidget->size();
 
-	// è®¡ç®—æœ€åçš„éœ€è¦ç§»åŠ¨åˆ°çš„å±å¹•åæ ‡
+	// ¼ÆËã×îºóµÄĞèÒªÒÆ¶¯µ½µÄÆÁÄ»×ø±ê
 	int nPosX = (objScreenRect.width()-objWidgetSize.width())/2 + objScreenRect.x();
-	int nPosY = (objScreenRect.height()-objWidgetSize.height())/2 + objScreenRect.y();
+	int nPosY = (objScreenRect.height()-WIDGET_TITLE_OFFSET-objWidgetSize.height())/2 + objScreenRect.y();
 
 	pWidget->move(nPosX, nPosY);
-	pWidget->show();
 }
 
 void CAutoDialogPos::AdjustPos(QWidget* pWidget, int nOffset, bool bResize)
@@ -60,10 +60,10 @@ void CAutoDialogPos::AdjustPos(QWidget* pWidget, int nOffset, bool bResize)
 		return;
 	}
 
-	// è·å–é¼ æ ‡æ‰€åœ¨å±å¹•çš„åæ ‡
+	// »ñÈ¡Êó±êËùÔÚÆÁÄ»µÄ×ø±ê
 	QPoint objCursorPoint = pWidget->cursor().pos();
 
-	// è·å–é¼ æ ‡æ‰€åœ¨å±å¹•çš„å°ºå¯¸
+	// »ñÈ¡Êó±êËùÔÚÆÁÄ»µÄ³ß´ç
 	QDesktopWidget* pDesktop = QApplication::desktop();
 	if(NULL == pDesktop)
 	{
@@ -73,54 +73,56 @@ void CAutoDialogPos::AdjustPos(QWidget* pWidget, int nOffset, bool bResize)
 
 	if(bResize)
 	{
-		// å¦‚æœç•Œé¢ä¼šè‡ªåŠ¨å˜åŒ–ï¼Œé‚£ä¹ˆç•Œé¢åœ¨æ˜¾ç¤ºçš„æ—¶å€™å…¶å°ºå¯¸æ‰æ˜¯æœ‰æ•ˆçš„
+		// Èç¹û½çÃæ»á×Ô¶¯±ä»¯£¬ÄÇÃ´½çÃæÔÚÏÔÊ¾µÄÊ±ºòÆä³ß´ç²ÅÊÇÓĞĞ§µÄ
 		pWidget->show();
 	}
-	// è·å–æ§ä»¶çš„å°ºå¯¸
+	// »ñÈ¡¿Ø¼şµÄ³ß´ç
 	QSize objWidgetSize = pWidget->size();
 
-	// è®¡ç®—æœ€åçš„éœ€è¦ç§»åŠ¨åˆ°çš„å±å¹•åæ ‡
-	int nPosX = (objScreenRect.width()-objWidgetSize.width())/2 + objScreenRect.x();
-	int nPosY = (objScreenRect.height()-objWidgetSize.height())/2 + objScreenRect.y();
+	// ¼ÆËã×îºóµÄĞèÒªÒÆ¶¯µ½µÄÆÁÄ»×ø±ê
+	int nPosX=0;
+	int nPosY=0;
 
-
-	// å¼€å§‹æ ¹æ®é¼ æ ‡çš„ä½ç½®å’Œæ§ä»¶çš„å¤§å°è®¡ç®—ç©ºé—´çš„æ˜¾ç¤ºåæ ‡
-	if(objCursorPoint.x()+nOffset+objWidgetSize.width()+SCREEEN_OFFSET < objScreenRect.x()+objScreenRect.width())
+	// ¿ªÊ¼¸ù¾İÊó±êµÄÎ»ÖÃºÍ¿Ø¼şµÄ´óĞ¡¼ÆËã¿Õ¼äµÄÏÔÊ¾×ø±ê
+	if(objCursorPoint.x()+nOffset+objWidgetSize.width()+SCREEN_OFFSET_H < objScreenRect.x()+objScreenRect.width())
 	{
-		// è¯¥å¯¹è¯æ¡†å¯ä»¥æ˜¾ç¤ºåœ¨å³è¾¹
+		// ¸Ã¶Ô»°¿ò¿ÉÒÔÏÔÊ¾ÔÚÓÒ±ß
 		nPosX = objCursorPoint.x()+nOffset;
 	}
-	else if(objCursorPoint.x()-nOffset-objWidgetSize.width()-SCREEEN_OFFSET > objScreenRect.x())
+	else if(objCursorPoint.x()-nOffset-objWidgetSize.width()-SCREEN_OFFSET_H > objScreenRect.x())
 	{
-		// è¯¥å¯¹è¯æ¡†å¯ä»¥æ˜¾ç¤ºåœ¨å·¦è¾¹
+		// ¸Ã¶Ô»°¿ò¿ÉÒÔÏÔÊ¾ÔÚ×ó±ß
 		nPosX = objCursorPoint.x()-nOffset-objWidgetSize.width();
 	}
 	else
 	{
-		// è¯¥å¯¹è¯æ¡†å¤ªå¤§äº†ï¼Œæ˜¾ç¤ºåœ¨å³è¾¹ï¼Œä½†æ˜¯ä¼šå‡ºç°é®æŒ¡
-		nPosX = objScreenRect.x() + (objScreenRect.width()-objWidgetSize.width()-SCREEEN_OFFSET);
+		// ¸Ã¶Ô»°¿òÌ«´óÁË£¬ÏÔÊ¾ÔÚÓÒ±ß£¬µ«ÊÇ»á³öÏÖÕÚµ²
+		nPosX = objScreenRect.x() + (objScreenRect.width()-objWidgetSize.width()-SCREEN_OFFSET_H);
 	}
 
-	// è®¡ç®—yè½´åæ ‡
+	// ¼ÆËãyÖá×ø±ê
 	if(objWidgetSize.height() > objScreenRect.height())
 	{
-		nPosY = SCREEEN_OFFSET;
+		// ¸Ã¿Ø¼şµÄ¸ß¶È´óÓÚÆÁÄ»ÄÜ¹»ÏÔÊ¾µÄ×î´ó¸ß¶È£¬ÕâÊ±¶Ô»°¿òÌù×Å¶¥¶ËÏÔÊ¾
+		nPosY = SCREEN_OFFSET_V;
 	}
-	else if(objCursorPoint.y()+objWidgetSize.height()/2 >= objScreenRect.height()-SCREEEN_OFFSET)
+	else if(objCursorPoint.y()+objWidgetSize.height()/2 >= objScreenRect.height()-SCREEN_OFFSET_V)
 	{
-		nPosY = objScreenRect.height() - SCREEEN_OFFSET - objWidgetSize.height() - WIDGET_TITLE_OFFSET;
+		// ¸Ã´°¿Ú¹ı´ó£¬ÏÔÊ¾³¬¹ıÆÁÄ»µ×±ß½ç
+		nPosY = objScreenRect.height() - SCREEN_OFFSET_V - objWidgetSize.height() - WIDGET_TITLE_OFFSET;
 	}
-	else if(objCursorPoint.y()-objWidgetSize.height()/2 <= SCREEEN_OFFSET)
+	else if(objCursorPoint.y()-objWidgetSize.height()/2 <= SCREEN_OFFSET_V)
 	{
-		nPosY = SCREEEN_OFFSET;
+		// Êó±êËùÔÚÎ»ÖÃ¹ı¸ß£¬ÏÔÊ¾³¬¹ıÆÁÄ»¶¥±ß½ç
+		nPosY = SCREEN_OFFSET_V;
 	}
 	else 
 	{
+		// Ò»°ãÇé¿öÏÂ¸Ã¶Ô»°¿òÖĞĞÄ»áÓëÊó±êËùÔÚÎ»ÖÃÍ¬¸ß
 		nPosY = objCursorPoint.y()-objWidgetSize.height()/2;
 	}
 
 	pWidget->move(nPosX, nPosY);
-	pWidget->show();
 }
 
 
