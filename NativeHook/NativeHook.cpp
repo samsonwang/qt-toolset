@@ -1,8 +1,8 @@
 //==============================================================================
-//							 NativeHook.cpp
-//							   
-// begin	: 2016/12/8
-// describe	: ±æµÿπ≥◊”
+//                           NativeHook.cpp
+//                             
+// begin    : 2016/12/8
+// describe : Êú¨Âú∞Èí©Â≠ê
 //==============================================================================
 
 #include <QSettings>
@@ -10,123 +10,145 @@
 #include <Windows.h>
 #include "NativeHook.h"
 
-#define HOOK_PASS_ON		0	// ºÃ–¯¥´µ›π≥◊”
-#define HOOK_THROW_AWAY		1	// ∂™∆˙π≥◊”
+#define HOOK_PASS_ON        0   // ÁªßÁª≠‰º†ÈÄíÈí©Â≠ê
+#define HOOK_THROW_AWAY     1   // ‰∏¢ÂºÉÈí©Â≠ê
 
-#define TASKMANAGER	"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"
-#define DISTASKMGR	"DisableTaskMgr"
+#define TASKMANAGER "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"
+#define DISTASKMGR  "DisableTaskMgr"
 
-HHOOK g_keyHook;	// º¸≈Ãπ≥◊”
-HWND g_hTray;		// œµÕ≥»ŒŒÒ¿∏
+HHOOK g_hkeyHook;   // handle for keyboard hook
+bool g_bLockState;  // Â±èËîΩÁä∂ÊÄÅ(system backdoor)
 
-// º¸≈Ãπ≥◊”¥¶¿Ì∫Ø ˝
+// Keyboard Hook process function
 LRESULT CALLBACK keyHookProc(int nCode,WPARAM wParam,LPARAM lParam );
 
-// “˛≤ÿ»ŒŒÒ¿∏
+// function declaration
 void HideTray(bool bState);
 void DisableTaskMgr(bool bState);
 
 //==============================================================================
 //
-//							  CNativeHook
-//							   ±æµÿªØπ≥◊”
+//                            CNativeHook
+//                             Êú¨Âú∞ÂåñÈí©Â≠ê
 //
 //==============================================================================
 
 CNativeHook::CNativeHook()
 {
-	g_hTray = FindWindow(L"Shell_TrayWnd",NULL);
-
-	SetHook();
-	HideTray(true);
-	DisableTaskMgr(true);
+    SetHook();
+    HideTray(true);
+    DisableTaskMgr(true);
 }
 
 CNativeHook::~CNativeHook()
 {
-	CancelHook();
-	HideTray(false);
-	DisableTaskMgr(false);
+    CancelHook();
+    HideTray(false);
+    DisableTaskMgr(false);
 }
 
 void CNativeHook::SetHook()
 {
-	//µ◊≤„º¸≈Ãπ≥◊”
-	g_keyHook =SetWindowsHookEx( WH_KEYBOARD_LL, keyHookProc, GetModuleHandle(NULL), 0);
+    //Â∫ïÂ±ÇÈîÆÁõòÈí©Â≠ê
+    g_hkeyHook =SetWindowsHookEx(WH_KEYBOARD_LL, keyHookProc, GetModuleHandle(NULL), 0);
 }
 
 void CNativeHook::CancelHook()
 {
-	UnhookWindowsHookEx(g_keyHook);
+    UnhookWindowsHookEx(g_hkeyHook);
 }
 
-//º¸≈Ãπ≥◊”π˝≥Ã
+//ÈîÆÁõòÈí©Â≠êËøáÁ®ã
 LRESULT CALLBACK keyHookProc(int nCode, WPARAM wParam, LPARAM lParam )
 {
-	//‘⁄WH_KEYBOARD_LLƒ£ Ωœ¬lParam  «÷∏œÚKBDLLHOOKSTRUCT¿‡–Õµÿ÷∑
-	KBDLLHOOKSTRUCT* pKeyboardHook = (KBDLLHOOKSTRUCT *) lParam;
-	//»Áπ˚nCodeµ»”⁄HC_ACTION‘Ú¥¶¿Ì∏√œ˚œ¢£¨»Áπ˚–°”⁄0£¨‘Úπ≥◊”◊”≥ÃæÕ±ÿ–ÎΩ´∏√œ˚œ¢¥´µ›∏¯ CallNextHookEx
-	if(nCode == HC_ACTION)
-	{
-		switch(pKeyboardHook->vkCode)
-		{
-		case VK_ESCAPE:
-			if(GetAsyncKeyState(VK_CONTROL) & 0x8000)
-			{
-				qDebug() << "Ctrl+Esc";
-				return HOOK_THROW_AWAY;
-			}
-			break;
-		case VK_TAB:
-			if(pKeyboardHook->flags & LLKHF_ALTDOWN)
-			{
-				qDebug() << "Alt+Tab";
-				return HOOK_THROW_AWAY;
-			}
-			break;
-		case VK_LWIN:
-		case VK_RWIN:
-			qDebug() << "LWIN/RWIN";
-			return HOOK_THROW_AWAY;
-		case VK_F8:
-			UnhookWindowsHookEx(g_keyHook);
-			DisableTaskMgr(false);
-			HideTray(false);
-			break;
-		default:
-			break;
-		}
-	}
-	return CallNextHookEx(g_keyHook, nCode, wParam, lParam);
+    //Âú®WH_KEYBOARD_LLÊ®°Âºè‰∏ãlParam ÊòØÊåáÂêëKBDLLHOOKSTRUCTÁ±ªÂûãÂú∞ÂùÄ
+    KBDLLHOOKSTRUCT* pKeyboardHook = (KBDLLHOOKSTRUCT *) lParam;
+    //Â¶ÇÊûúnCodeÁ≠â‰∫éHC_ACTIONÂàôÂ§ÑÁêÜËØ•Ê∂àÊÅØÔºåÂ¶ÇÊûúÂ∞è‰∫é0ÔºåÂàôÈí©Â≠êÂ≠êÁ®ãÂ∞±ÂøÖÈ°ªÂ∞ÜËØ•Ê∂àÊÅØ‰º†ÈÄíÁªô CallNextHookEx
+    if(nCode == HC_ACTION)
+    {
+        switch(pKeyboardHook->vkCode)
+        {
+        case VK_ESCAPE:
+            if(GetAsyncKeyState(VK_CONTROL) & 0x8000
+                || pKeyboardHook->flags & LLKHF_ALTDOWN
+                )
+            {
+                qDebug() << "Ctrl+Esc";
+                return HOOK_THROW_AWAY;
+            }
+            break;
+        case VK_TAB:
+            if(pKeyboardHook->flags & LLKHF_ALTDOWN)
+            {
+                qDebug() << "Alt+Tab";
+                return HOOK_THROW_AWAY;
+            }
+            break;
+        case VK_F4:
+            if(pKeyboardHook->flags & LLKHF_ALTDOWN)
+            {
+                qDebug() << "Alt+F4";
+                return HOOK_THROW_AWAY;
+            }
+        case VK_LWIN:
+        case VK_RWIN:
+            qDebug() << "LWIN/RWIN";
+            return HOOK_THROW_AWAY;
+        case VK_F8:
+            if(GetAsyncKeyState(VK_CONTROL)&0x8000 && GetAsyncKeyState(VK_SHIFT)&0x8000)
+            {
+                g_bLockState = true;
+            }
+            return HOOK_PASS_ON;
+            break;
+        case VK_F11:
+            if(GetAsyncKeyState(VK_CONTROL)&0x8000 && GetAsyncKeyState(VK_SHIFT)&0x8000)
+            {
+                if(g_bLockState)
+                {
+                    UnhookWindowsHookEx(g_hkeyHook);
+                    DisableTaskMgr(false);
+                    HideTray(false);
+                }
+                return HOOK_PASS_ON;
+            }
+            break;
+        default:
+            break;
+        }
+        g_bLockState = false;
+    }
+    return CallNextHookEx(g_hkeyHook, nCode, wParam, lParam);
 }
 
+// Á¶ÅÁî®‰ªªÂä°ÁÆ°ÁêÜÂô®
 void DisableTaskMgr(bool bState)
 {
-	return;
-
-	QSettings objSettings(TASKMANAGER, QSettings::NativeFormat);
-	if(bState)
-	{
-		objSettings.setValue(DISTASKMGR, "1");
-	}
-	else
-	{
-		objSettings.remove(DISTASKMGR);
-	}
+    return;
+    QSettings objSettings(TASKMANAGER, QSettings::NativeFormat);
+    if(bState)
+    {
+        objSettings.setValue(DISTASKMGR, "1");
+    }
+    else
+    {
+        objSettings.remove(DISTASKMGR);
+    }
 }
 
-// “˛≤ÿ
+// ÈöêËóèÁ≥ªÁªüÊâòÁõò
 void HideTray(bool bState)
 {
-	return;
+    return;
+    HWND hTray = FindWindow(L"Shell_TrayWnd", NULL);    // Á≥ªÁªü‰ªªÂä°Ê†è
 
-	if(bState)
-	{
-		ShowWindow(g_hTray, SW_HIDE);
-	}
-	else
-	{
-		ShowWindow(g_hTray, SW_SHOW);
-	}
+    if(bState)
+    {
+        ShowWindow(hTray, SW_HIDE);
+    }
+    else
+    {
+        ShowWindow(hTray, SW_SHOW);
+    }
 }
 
